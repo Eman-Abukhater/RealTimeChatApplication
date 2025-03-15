@@ -82,3 +82,15 @@ body {
 .send-btn:hover {
     background-color: #216288;
 }
+.sent {
+    align-self: flex-end;
+    background-color: #58a4b8;
+    color: white;
+    text-align: right;
+}
+
+.received {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    color: black;
+}
