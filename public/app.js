@@ -10,6 +10,9 @@ const messagesDiv = document.getElementById("messages");
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 chatHistory.forEach(displayMessage);
 
+// Generate a unique room ID for this session
+let roomId = "room-" + Date.now(); 
+
 // Request chat history from the server when connecting
 socket.emit("requestChatHistory");
 
@@ -18,6 +21,10 @@ socket.on("chatHistory", (chatHistory) => {
     messagesDiv.innerHTML = ""; // Clear current messages
     chatHistory.forEach(displayMessage); // Show chat history
 });
+
+// Join the room
+// Join the user to the unique room after generating a room ID
+socket.emit("joinRoom", roomId);
 
 document.getElementById("send-btn").addEventListener("click", sendMessage);
 document.getElementById("message").addEventListener("keypress", (e) => {
