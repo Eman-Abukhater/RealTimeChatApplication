@@ -14,13 +14,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Store chat history
 let chatHistory = [];
 
+// Track user rooms
+const userRooms = {};
+
 io.on("connection", (socket) => {
     console.log("A user connected");
 
-    // Generate a unique room ID for this pair of users (this can be customized)
-    let roomId = uuidv4(); // Create a unique room ID for each user pair
+    // Generate a unique room ID and send it to the client
+    let roomId = uuidv4();
+    userRooms[socket.id] = roomId; // Store the user's room
+    socket.emit("assignRoom", roomId); // Notify the client of their room ID
 
-    // Store the user's socket in the room
+    // Join the generated room
     socket.join(roomId);
     console.log(`User joined room: ${roomId}`);
 
@@ -35,12 +40,13 @@ io.on("connection", (socket) => {
         chatHistory.push(chatData);
 
         // Emit the message only to the specific room
-        io.to(roomId).emit("chatMessage", chatData); // Send message to the room
+        io.to(userRooms[socket.id]).emit("chatMessage", chatData);
     });
 
     // Handle user disconnect
     socket.on("disconnect", () => {
         console.log("A user disconnected");
+        delete userRooms[socket.id]; // Remove user from the room tracking
     });
 });
 

@@ -10,9 +10,6 @@ const messagesDiv = document.getElementById("messages");
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 chatHistory.forEach(displayMessage);
 
-// Generate a unique room ID for this session
-let roomId = "room-" + Date.now(); 
-
 // Request chat history from the server when connecting
 socket.emit("requestChatHistory");
 
@@ -22,16 +19,18 @@ socket.on("chatHistory", (chatHistory) => {
     chatHistory.forEach(displayMessage); // Show chat history
 });
 
-// Join the room
-// Join the user to the unique room after generating a room ID
-socket.emit("joinRoom", roomId);
+// Wait for the server to assign a room ID
+socket.on("assignRoom", (roomId) => {
+    socket.emit("joinRoom", roomId); // Join the assigned room
+    console.log(`Joined room: ${roomId}`);
+});
 
+// Send chat message
 document.getElementById("send-btn").addEventListener("click", sendMessage);
 document.getElementById("message").addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
 });
 
-// Send chat message
 function sendMessage() {
     const messageInput = document.getElementById("message");
     const message = messageInput.value.trim();
@@ -56,11 +55,9 @@ function displayMessage({ username: sender, message }) {
     msgElement.classList.add("message");
 
     if (sender === username) {
-        // Message from the current user
-        msgElement.classList.add("sent");
+        msgElement.classList.add("sent"); // Message from the current user
     } else {
-        // Message from another user
-        msgElement.classList.add("received");
+        msgElement.classList.add("received"); // Message from another user
     }
 
     msgElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
