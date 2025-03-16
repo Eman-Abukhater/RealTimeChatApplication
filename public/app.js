@@ -1,18 +1,28 @@
 // Initialize socket.io-client
-const  socket = io();
+const socket = io();
+
 // Ask for username
 let username = localStorage.getItem("username") || prompt("Enter your username:");
 localStorage.setItem("username", username);
+
 // Load previous messages from localStorage
 const messagesDiv = document.getElementById("messages");
 let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];
 chatHistory.forEach(displayMessage);
 
+// Request chat history from the server when connecting
+socket.emit("requestChatHistory");
+
+// Listen for chat history from the server
+socket.on("chatHistory", (chatHistory) => {
+    messagesDiv.innerHTML = ""; // Clear current messages
+    chatHistory.forEach(displayMessage); // Show chat history
+});
+
 document.getElementById("send-btn").addEventListener("click", sendMessage);
 document.getElementById("message").addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
 });
-
 
 // Send chat message
 function sendMessage() {
@@ -26,7 +36,6 @@ function sendMessage() {
     }
 }
 
-
 // Receive chat message
 socket.on("chatMessage", (chatData) => {
     displayMessage(chatData);
@@ -34,9 +43,7 @@ socket.on("chatMessage", (chatData) => {
     localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
 });
 
-
 // Display chat message
-
 function displayMessage({ username: sender, message }) {
     const msgElement = document.createElement("div");
     msgElement.classList.add("message");
@@ -55,5 +62,3 @@ function displayMessage({ username: sender, message }) {
     // Auto-scroll to latest message
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
-
-
